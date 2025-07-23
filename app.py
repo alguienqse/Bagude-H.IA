@@ -7,23 +7,22 @@ import uuid
 import stripe
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env (útil para desarrollo local)
+# Cargar variables del archivo .env
 load_dotenv()
 
-# Configuraciones
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI (cliente moderno)
+# OpenAI (cliente compatible con 1.3.9)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
 
-# Base de datos
+# Modelos de la base de datos
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text, nullable=False)
@@ -39,7 +38,6 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
-# ✅ CORREGIDO: asegurar que el usuario exista
 @app.before_request
 def assign_session():
     if 'user_id' not in session:
