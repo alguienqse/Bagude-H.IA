@@ -7,23 +7,23 @@ import uuid
 import stripe
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env
+# Cargar variables del archivo .env (útil para desarrollo local)
 load_dotenv()
 
-# Configuración de Flask
+# Configuraciones
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# Cliente OpenAI
+# OpenAI (cliente moderno)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
 
-# Modelos
+# Base de datos
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text, nullable=False)
@@ -92,6 +92,7 @@ def audio():
     tts.save(filepath)
     return send_file(filepath, as_attachment=True)
 
+# ✅ FRAGMENTO CORREGIDO AQUÍ
 @app.route('/imagen', methods=['POST'])
 def imagen():
     user = User.query.filter_by(session_id=session['user_id']).first()
@@ -99,16 +100,20 @@ def imagen():
         return "Límite gratuito de 2 imágenes alcanzado. Suscríbete para más."
 
     prompt = request.form['prompt']
-    response = client.images.generate(
-        model="dall-e-3",
-        prompt=prompt,
-        size="1024x1024",
-        quality="standard",
-        n=1
-    )
-    user.images_used += 1
-    db.session.commit()
-    return redirect(response.data[0].url)
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        image_url = response.data[0].url
+        user.images_used += 1
+        db.session.commit()
+        return redirect(image_url)
+    except Exception as e:
+        return f"Ocurrió un error generando la imagen: {str(e)}", 500
 
 @app.route('/upload', methods=['POST'])
 def upload():
