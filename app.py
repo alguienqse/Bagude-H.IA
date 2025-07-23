@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
-from openai import OpenAI
+import openai
 from gtts import gTTS
 import os
 import uuid
@@ -16,8 +16,8 @@ app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI (cliente moderno)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# OpenAI (cliente clásico)
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -59,7 +59,7 @@ def ask():
         return "Límite gratuito alcanzado. Suscríbete para preguntas ilimitadas."
 
     question = request.form['question']
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "Eres H.IA, un asistente de estudios con información actual y útil."},
@@ -92,7 +92,6 @@ def audio():
     tts.save(filepath)
     return send_file(filepath, as_attachment=True)
 
-# ✅ FRAGMENTO CORREGIDO AQUÍ
 @app.route('/imagen', methods=['POST'])
 def imagen():
     user = User.query.filter_by(session_id=session['user_id']).first()
@@ -101,14 +100,12 @@ def imagen():
 
     prompt = request.form['prompt']
     try:
-        response = client.images.generate(
-            model="dall-e-3",
+        response = openai.Image.create(
             prompt=prompt,
-            size="1024x1024",
-            quality="standard",
-            n=1
+            n=1,
+            size="1024x1024"
         )
-        image_url = response.data[0].url
+        image_url = response['data'][0]['url']
         user.images_used += 1
         db.session.commit()
         return redirect(image_url)
