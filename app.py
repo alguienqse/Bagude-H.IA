@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
-import openai
 from gtts import gTTS
+import openai
 import os
 import uuid
 import stripe
@@ -10,13 +10,13 @@ from dotenv import load_dotenv
 # Cargar variables del archivo .env
 load_dotenv()
 
-# Configuración de Flask y SQLAlchemy
+# Configuración Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# Configuración OpenAI (versión 1.10.0)
+# OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Stripe
@@ -66,7 +66,7 @@ def ask():
             {"role": "user", "content": question}
         ]
     )
-    answer = response.choices[0].message["content"]
+    answer = response["choices"][0]["message"]["content"]
     db.session.add(ChatHistory(question=question, answer=answer))
     user.questions_used += 1
     db.session.commit()
