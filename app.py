@@ -7,7 +7,7 @@ import uuid
 import stripe
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env
+# Cargar variables del archivo .env (útil para desarrollo local)
 load_dotenv()
 
 # Configuraciones
@@ -16,8 +16,8 @@ app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI
-client = OpenAI()
+# OpenAI (Render requiere pasar la clave explícitamente)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
