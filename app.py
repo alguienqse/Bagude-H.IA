@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
-import openai
+from openai import OpenAI
 from gtts import gTTS
 import os
 import uuid
@@ -16,8 +16,8 @@ app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI (cliente clásico)
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# OpenAI (cliente moderno)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -39,13 +39,14 @@ class User(db.Model):
 with app.app_context():
     db.create_all()
 
+# ✅ CORREGIDO: asegurar que el usuario exista
 @app.before_request
 def assign_session():
     if 'user_id' not in session:
         session['user_id'] = str(uuid.uuid4())
-        if not User.query.filter_by(session_id=session['user_id']).first():
-            db.session.add(User(session_id=session['user_id']))
-            db.session.commit()
+    if not User.query.filter_by(session_id=session['user_id']).first():
+        db.session.add(User(session_id=session['user_id']))
+        db.session.commit()
 
 @app.route('/')
 def home():
@@ -59,7 +60,7 @@ def ask():
         return "Límite gratuito alcanzado. Suscríbete para preguntas ilimitadas."
 
     question = request.form['question']
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "Eres H.IA, un asistente de estudios con información actual y útil."},
@@ -100,12 +101,14 @@ def imagen():
 
     prompt = request.form['prompt']
     try:
-        response = openai.Image.create(
+        response = client.images.generate(
+            model="dall-e-3",
             prompt=prompt,
-            n=1,
-            size="1024x1024"
+            size="1024x1024",
+            quality="standard",
+            n=1
         )
-        image_url = response['data'][0]['url']
+        image_url = response.data[0].url
         user.images_used += 1
         db.session.commit()
         return redirect(image_url)
