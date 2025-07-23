@@ -1,23 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
-from openai import OpenAI
+import openai
 from gtts import gTTS
 import os
 import uuid
 import stripe
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env (útil para desarrollo local)
+# Cargar variables del archivo .env
 load_dotenv()
 
-# Configuraciones
+# Configuración de Flask y SQLAlchemy
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI (Render requiere pasar la clave explícitamente)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Configuración OpenAI (versión 1.10.0)
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -59,14 +59,14 @@ def ask():
         return "Límite gratuito alcanzado. Suscríbete para preguntas ilimitadas."
 
     question = request.form['question']
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "Eres H.IA, un asistente de estudios con información actual y útil."},
             {"role": "user", "content": question}
         ]
     )
-    answer = response.choices[0].message.content
+    answer = response.choices[0].message["content"]
     db.session.add(ChatHistory(question=question, answer=answer))
     user.questions_used += 1
     db.session.commit()
@@ -99,16 +99,14 @@ def imagen():
         return "Límite gratuito de 2 imágenes alcanzado. Suscríbete para más."
 
     prompt = request.form['prompt']
-    response = client.images.generate(
-        model="dall-e-3",
+    response = openai.Image.create(
         prompt=prompt,
-        size="1024x1024",
-        quality="standard",
-        n=1
+        n=1,
+        size="1024x1024"
     )
     user.images_used += 1
     db.session.commit()
-    return redirect(response.data[0].url)
+    return redirect(response["data"][0]["url"])
 
 @app.route('/upload', methods=['POST'])
 def upload():
