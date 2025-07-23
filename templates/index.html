@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>H.IA - Tu Asistente</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f2027;
+      --fg: #f0f0f0;
+      --container: rgba(0, 0, 0, 0.6);
+      --bubble-ai: rgba(0, 255, 123, 0.3);
+      --bubble-user: rgba(0, 123, 255, 0.3);
+    }
+
+    body.light {
+      --bg: #f5f5f5;
+      --fg: #222;
+      --container: rgba(255, 255, 255, 0.6);
+      --bubble-ai: rgba(200, 255, 220, 0.8);
+      --bubble-user: rgba(173, 216, 255, 0.8);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+      padding: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .wrapper {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: var(--container);
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 20px;
+    }
+
+    .main {
+      flex-grow: 1;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .container {
+      background: var(--container);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 900px;
+      margin: auto;
+      backdrop-filter: blur(8px);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    form {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"], input[name="question"] {
+      width: 65%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .chat {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.4s forwards;
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .bubble {
+      padding: 15px 20px;
+      border-radius: 15px;
+      max-width: 80%;
+      margin: 0 10px;
+      position: relative;
+      white-space: pre-wrap;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .user .bubble {
+      background: var(--bubble-user);
+    }
+
+    .ai .bubble {
+      background: var(--bubble-ai);
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .reset-btn {
+      display: block;
+      margin: 20px auto 0;
+      color: var(--fg);
+      text-align: center;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="sidebar">
+      <h2>Historial</h2>
+      <input type="text" id="search" placeholder="Buscar en historial...">
+      <span id="theme-toggle">🌙 Modo oscuro</span>
+    </div>
+    <div class="main">
+      <div class="container">
+        <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
+
+        <form action="/ask" method="post">
+          <input type="text" name="question" placeholder="Haz tu pregunta..." required>
+          <button type="submit">Enviar</button>
+        </form>
+
+        <form action="/audio" method="post" target="_blank">
+          <input type="text" name="text" placeholder="Texto para convertir en audio..." required>
+          <button type="submit">🎧 Generar Audio</button>
+        </form>
+
+        <form action="/imagen" method="post">
+          <input type="text" name="prompt" placeholder="Describe la imagen..." required>
+          <button type="submit">🖼 Generar Imagen</button>
+        </form>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+          <input type="file" name="file" required>
+          <button type="submit">📎 Subir Archivo</button>
+        </form>
+
+        <form action="/subscribe" method="post">
+          <input type="email" name="email" placeholder="Tu correo electrónico" required>
+          <button type="submit">💳 Suscribirme</button>
+        </form>
+
+        <div class="chat" id="chat-box">
+          {% for item in chat_history %}
+            <div class="message user">
+              <img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" alt="User" class="avatar">
+              <div class="bubble">{{ item.question }}</div>
+            </div>
+            <div class="message ai">
+              <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="H.IA" class="avatar">
+              <div class="bubble markdown">
+                <button class="copy-btn">Copiar</button>
+                <div class="markdown-content">{{ item.answer }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <a class="reset-btn" href="/reset">🗑️ Borrar historial</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+    document.querySelectorAll('.markdown-content').forEach(el => {
+      el.innerHTML = marked.parse(el.textContent.trim());
+    });
+
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const html = btn.parentElement.querySelector('.markdown-content').innerText;
+        navigator.clipboard.writeText(html).then(() => {
+          btn.textContent = '✔ Copiado';
+          setTimeout(() => (btn.textContent = 'Copiar'), 2000);
+        });
+      });
+    });
+
+    const toggle = document.getElementById('theme-toggle');
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      toggle.textContent = document.body.classList.contains('light') ? '🌙 Modo oscuro' : '☀️ Modo claro';
+    });
+
+    document.getElementById('search').addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.chat .message').forEach(msg => {
+        msg.style.display = msg.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
