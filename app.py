@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
+from openai import OpenAI
 from gtts import gTTS
-import openai
 import os
 import uuid
 import stripe
@@ -10,20 +10,20 @@ from dotenv import load_dotenv
 # Cargar variables del archivo .env
 load_dotenv()
 
-# Configuración Flask
+# Configuración de Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Cliente OpenAI
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
 
-# Base de datos
+# Modelos
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text, nullable=False)
@@ -59,14 +59,14 @@ def ask():
         return "Límite gratuito alcanzado. Suscríbete para preguntas ilimitadas."
 
     question = request.form['question']
-    response = openai.ChatCompletion.create(
+    response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "Eres H.IA, un asistente de estudios con información actual y útil."},
             {"role": "user", "content": question}
         ]
     )
-    answer = response["choices"][0]["message"]["content"]
+    answer = response.choices[0].message.content
     db.session.add(ChatHistory(question=question, answer=answer))
     user.questions_used += 1
     db.session.commit()
@@ -99,14 +99,16 @@ def imagen():
         return "Límite gratuito de 2 imágenes alcanzado. Suscríbete para más."
 
     prompt = request.form['prompt']
-    response = openai.Image.create(
+    response = client.images.generate(
+        model="dall-e-3",
         prompt=prompt,
-        n=1,
-        size="1024x1024"
+        size="1024x1024",
+        quality="standard",
+        n=1
     )
     user.images_used += 1
     db.session.commit()
-    return redirect(response["data"][0]["url"])
+    return redirect(response.data[0].url)
 
 @app.route('/upload', methods=['POST'])
 def upload():
