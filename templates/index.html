@@ -7,19 +7,29 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
-      --bg: #0f2027;
-      --fg: #f0f0f0;
-      --container: rgba(0, 0, 0, 0.6);
-      --bubble-ai: rgba(0, 255, 123, 0.3);
-      --bubble-user: rgba(0, 123, 255, 0.3);
+      --bg: #1e1e1e;
+      --fg: #fff;
+      --container: rgba(0, 0, 0, 0.8);
+      --bubble-ai: #007bff;
+      --bubble-user: #4caf50;
+      --button-bg: #1e88e5;
+      --button-hover: #1565c0;
+      --border-radius: 16px;
+      --input-bg: #333;
+      --input-color: #fff;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
     body.light {
-      --bg: #f5f5f5;
-      --fg: #222;
-      --container: rgba(255, 255, 255, 0.6);
-      --bubble-ai: rgba(200, 255, 220, 0.8);
-      --bubble-user: rgba(173, 216, 255, 0.8);
+      --bg: #fafafa;
+      --fg: #333;
+      --container: rgba(255, 255, 255, 0.9);
+      --bubble-ai: #dcf8c6;
+      --bubble-user: #c8e6c9;
+      --button-bg: #007bff;
+      --button-hover: #0056b3;
+      --input-bg: #e0e0e0;
+      --input-color: #333;
     }
 
     body {
@@ -35,99 +45,46 @@
       display: flex;
       height: 100vh;
       overflow: hidden;
-    }
-
-    .sidebar {
-      width: 300px;
-      background: var(--container);
-      padding: 20px;
-      overflow-y: auto;
-      border-right: 2px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar h2 {
-      margin-top: 0;
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-
-    .sidebar input {
-      width: 100%;
-      padding: 8px;
-      border-radius: 5px;
-      border: none;
-      margin-bottom: 20px;
+      justify-content: center;
+      align-items: center;
     }
 
     .main {
-      flex-grow: 1;
-      padding: 40px;
-      overflow-y: auto;
-    }
-
-    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 20px;
       background: var(--container);
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 900px;
-      margin: auto;
-      backdrop-filter: blur(8px);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h1 {
       text-align: center;
       margin-bottom: 20px;
-    }
-
-    form {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    input[type="text"], input[name="question"] {
-      width: 65%;
-      padding: 12px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-    }
-
-    button {
-      padding: 12px 20px;
-      font-size: 16px;
-      background: #007bff;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background: #0056b3;
+      font-size: 28px;
     }
 
     .chat {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
       border-radius: 10px;
-      max-height: 500px;
+      width: 100%;
+      max-height: 400px;
       overflow-y: auto;
+      margin-bottom: 20px;
       position: relative;
     }
 
     .message {
       display: flex;
       align-items: flex-start;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       opacity: 0;
       transform: translateY(20px);
-      animation: fadeIn 0.4s forwards;
+      animation: fadeIn 0.5s forwards;
     }
 
     .message.user {
@@ -135,39 +92,26 @@
     }
 
     .bubble {
-      padding: 15px 20px;
-      border-radius: 15px;
+      padding: 12px 18px;
+      border-radius: 18px;
       max-width: 80%;
       margin: 0 10px;
       position: relative;
+      background-color: var(--bubble-user);
       white-space: pre-wrap;
       overflow-wrap: break-word;
       word-break: break-word;
-      overflow: hidden;
-      box-sizing: border-box;
-    }
-
-    .user .bubble {
-      background: var(--bubble-user);
     }
 
     .ai .bubble {
-      background: var(--bubble-ai);
+      background-color: var(--bubble-ai);
     }
 
     .avatar {
       width: 40px;
       height: 40px;
       border-radius: 50%;
-    }
-
-    .reset-btn {
-      display: block;
-      margin: 20px auto 0;
-      color: var(--fg);
-      text-align: center;
-      text-decoration: underline;
-      cursor: pointer;
+      margin: 0 10px;
     }
 
     .copy-btn {
@@ -175,10 +119,10 @@
       top: 10px;
       right: 10px;
       background: rgba(255, 255, 255, 0.2);
-      color: #000;
+      color: #fff;
       border: none;
-      border-radius: 5px;
-      padding: 4px 8px;
+      border-radius: 8px;
+      padding: 6px 12px;
       font-size: 12px;
       cursor: pointer;
     }
@@ -190,13 +134,52 @@
       }
     }
 
-    /* Animación de escritura */
+    .input-form {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-form input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--bg);
+      background-color: var(--input-bg);
+      color: var(--input-color);
+    }
+
+    .input-form button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background: var(--button-bg);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: background 0.3s ease;
+    }
+
+    .input-form button:hover {
+      background: var(--button-hover);
+    }
+
+    .reset-btn {
+      text-decoration: underline;
+      color: var(--fg);
+      cursor: pointer;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* Animación de "escribiendo..." */
     .typing-indicator {
       display: flex;
       align-items: center;
       font-size: 16px;
       color: #ccc;
-      margin-left: 10px;
+      margin-top: 10px;
     }
 
     .typing-indicator span {
@@ -228,127 +211,53 @@
         opacity: 1;
       }
     }
-
   </style>
 </head>
 <body>
   <div class="wrapper">
-    <div class="sidebar">
-      <h2>Historial</h2>
-      <input type="text" id="search" placeholder="Buscar en historial...">
-      <span id="theme-toggle">🌙 Modo oscuro</span>
-    </div>
     <div class="main">
-      <div class="container">
-        {% if user %}
-          <div style="text-align:right; font-size:14px; margin-bottom:10px;">
-            <span>
-              {% if user.is_premium %}
-                🟢 <strong>Usuario Premium</strong>
-              {% else %}
-                🔵 <strong>Usuario Gratuito</strong>
-              {% endif %}
-            </span>
-            <form action="/logout" method="post" style="display:inline;">
-              <button type="submit" style="margin-left:10px; font-size:14px; padding:6px 12px;">🚪 Cerrar sesión</button>
-            </form>
-          </div>
-        {% else %}
-          <div style="text-align:right; margin-bottom:10px;">
-            <a href="/login" style="text-decoration:none;">
-              <button style="font-size:14px; padding:6px 12px;">🔐 Iniciar sesión</button>
-            </a>
-          </div>
-        {% endif %}
+      <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
 
-        <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
+      <div class="chat" id="chat-box">
+        {% for item in chat_history %}
+          <div class="message user">
+            <img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" alt="User" class="avatar">
+            <div class="bubble">{{ item.question }}</div>
+          </div>
+          <div class="message ai">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="H.IA" class="avatar">
+            <div class="bubble markdown">
+              <button class="copy-btn">Copiar</button>
+              <div class="markdown-content">{{ item.answer }}</div>
+            </div>
+            {% if item.image %}
+              <div class="bubble">
+                <img src="{{ item.image }}" alt="Imagen generada" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
 
-        <form action="/ask" method="post">
+      <div class="input-form">
+        <form action="/ask" method="post" style="width: 100%;">
           <input type="text" name="question" placeholder="Haz tu pregunta..." required>
           <button type="submit">Enviar</button>
         </form>
+      </div>
 
-        <form action="/audio" method="post" target="_blank">
-          <input type="text" name="text" placeholder="Texto para convertir en audio..." required>
-          <button type="submit">🎧 Generar Audio</button>
-        </form>
+      <div class="reset-btn">
+        <a href="/reset">🗑️ Borrar historial</a>
+      </div>
 
-        <form action="/imagen" method="post">
-          <input type="text" name="prompt" placeholder="Describe la imagen..." required>
-          <button type="submit">🖼 Generar Imagen</button>
-        </form>
-
-        <form action="/upload" method="post" enctype="multipart/form-data">
-          <input type="file" name="file" required>
-          <button type="submit">📎 Subir Archivo</button>
-        </form>
-
-        <form action="/subscribe" method="post">
-          <input type="email" name="email" placeholder="Tu correo electrónico" required>
-          <button type="submit">💳 Suscribirme</button>
-        </form>
-
-        <div class="chat" id="chat-box">
-          {% for item in chat_history %}
-            <div class="message user">
-              <img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" alt="User" class="avatar">
-              <div class="bubble">{{ item.question }}</div>
-            </div>
-            <div class="message ai">
-              <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="H.IA" class="avatar">
-              <div class="bubble markdown">
-                <button class="copy-btn">Copiar</button>
-                <div class="markdown-content">{{ item.answer }}</div>
-              </div>
-              {% if item.image %}
-                <div class="bubble">
-                  <img src="{{ item.image }}" alt="Imagen generada" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
-                </div>
-              {% endif %}
-            </div>
-          {% endfor %}
-          <div class="typing-indicator" id="typing-indicator" style="display: none;">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-
-        <a class="reset-btn" href="/reset">🗑️ Borrar historial</a>
+      <div class="typing-indicator" id="typing-indicator" style="display: none;">
+        <span></span><span></span><span></span>
       </div>
     </div>
   </div>
 
   <script>
-    const chatBox = document.getElementById('chat-box');
-    if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
-
-    document.querySelectorAll('.markdown-content').forEach(el => {
-      el.innerHTML = marked.parse(el.textContent.trim());
-    });
-
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const html = btn.parentElement.querySelector('.markdown-content').innerText;
-        navigator.clipboard.writeText(html).then(() => {
-          btn.textContent = '✔ Copiado';
-          setTimeout(() => (btn.textContent = 'Copiar'), 2000);
-        });
-      });
-    });
-
-    const toggle = document.getElementById('theme-toggle');
-    toggle.addEventListener('click', () => {
-      document.body.classList.toggle('light');
-      toggle.textContent = document.body.classList.contains('light') ? '🌙 Modo oscuro' : '☀️ Modo claro';
-    });
-
-    document.getElementById('search').addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      document.querySelectorAll('.chat .message').forEach(msg => {
-        msg.style.display = msg.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
-      });
-    });
-
-    // Simulando la animación de "escribiendo"
+    // Función de "escribiendo..." mientras se genera la respuesta
     let isTyping = false;
     function toggleTypingIndicator(visible) {
       const indicator = document.getElementById('typing-indicator');
@@ -359,12 +268,11 @@
       }
     }
 
-    // Cuando se recibe una nueva respuesta de la IA, simula el "escribiendo..."
+    // Simulando el indicador de "escribiendo..."
     toggleTypingIndicator(true);
     setTimeout(() => {
       toggleTypingIndicator(false);
-      // Lógica para mostrar la respuesta de la IA
-    }, 3000); // Simulando 3 segundos de escritura
+    }, 3000); // Después de 3 segundos, dejar de mostrar el "escribiendo"
   </script>
 </body>
 </html>
