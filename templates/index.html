@@ -272,9 +272,18 @@
         {% endfor %}
       </div>
       <div>
-        <button>🎧 Generar Audio</button>
-        <button>🖼 Generar Imagen</button>
-        <button>📎 Subir Archivo</button>
+        <form action="/generate_audio" method="POST">
+          <input type="text" name="text" placeholder="Texto para convertir en audio..." required>
+          <button type="submit">🎧 Generar Audio</button>
+        </form>
+        <form action="/generate_image" method="POST">
+          <input type="text" name="prompt" placeholder="Describe la imagen..." required>
+          <button type="submit">🖼 Generar Imagen</button>
+        </form>
+        <form action="/upload_file" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" required>
+          <button type="submit">📎 Subir Archivo</button>
+        </form>
       </div>
 
       <!-- Botón de Suscripción -->
@@ -327,7 +336,7 @@
       </div>
 
       <div class="input-form">
-        <form action="/ask" method="post" style="width: 100%;">
+        <form action="/ask" method="POST" style="width: 100%;">
           <input type="text" name="question" placeholder="Haz tu pregunta..." required>
           <button type="submit">Enviar</button>
         </form>
