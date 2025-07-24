@@ -68,10 +68,8 @@ def ask():
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Eres H.IA, un asistente de estudios útil."},
-                {"role": "user", "content": question}
-            ]
+            messages=[{"role": "system", "content": "Eres H.IA, un asistente de estudios útil."},
+                      {"role": "user", "content": question}]
         )
         answer = response.choices[0].message["content"]
     except Exception as e:
@@ -118,7 +116,7 @@ def imagen():
         image_url = response["data"][0]["url"]
         user.images_used += 1
         db.session.commit()
-        return redirect(image_url)
+        return render_template('chat.html', image_url=image_url)
     except Exception as e:
         return f"Error generando imagen: {str(e)}", 500
 
