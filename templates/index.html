@@ -241,6 +241,22 @@
       }
     }
 
+    /* Botón de modo oscuro y claro */
+    .theme-toggle-btn {
+      background: none;
+      color: var(--fg);
+      border: 1px solid var(--fg);
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    
+    .theme-toggle-btn:hover {
+      background: var(--fg);
+      color: var(--bg);
+    }
+
   </style>
 </head>
 <body>
@@ -271,6 +287,17 @@
           <button type="submit">❌ Cancelar suscripción</button>
         </form>
       {% endif %}
+      <!-- Botón de modo oscuro / claro -->
+      <button class="theme-toggle-btn" id="theme-toggle">🌙 Modo oscuro</button>
+      <div>
+        {% if user.is_authenticated %}
+          <form action="/logout" method="post">
+            <button type="submit">🚪 Cerrar sesión</button>
+          </form>
+        {% else %}
+          <a href="/login"><button>🔐 Iniciar sesión</button></a>
+        {% endif %}
+      </div>
     </div>
 
     <div class="main">
@@ -335,9 +362,16 @@
       toggleTypingIndicator(false);
     }, 3000); // Después de 3 segundos, dejar de mostrar el "escribiendo"
 
-    // Función para cargar una conversación al hacer click
+    // Función para cambiar entre modo oscuro y claro
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      const themeBtn = document.getElementById('theme-toggle');
+      themeBtn.textContent = document.body.classList.contains('light') ? '🌙 Modo oscuro' : '☀️ Modo claro';
+    });
+
+    // Función para cargar una conversación
     function loadConversation(conversationId) {
-      // Aquí debería ir el código para cargar la conversación correspondiente
+      // Aquí deberías cargar la conversación correspondiente
       console.log("Cargando conversación", conversationId);
     }
   </script>
