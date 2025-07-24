@@ -86,8 +86,8 @@ def reset():
     db.session.commit()
     return redirect(url_for('home'))
 
-@app.route('/audio', methods=['POST'])
-def audio():
+@app.route('/generate_audio', methods=['POST'])
+def generate_audio():
     user = User.query.filter_by(session_id=session['user_id']).first()
     if not user or not user.is_premium:
         return "Función premium. Suscríbete."
@@ -100,8 +100,8 @@ def audio():
     tts.save(filepath)
     return send_file(filepath, as_attachment=True)
 
-@app.route('/imagen', methods=['POST'])
-def imagen():
+@app.route('/generate_image', methods=['POST'])
+def generate_image():
     user = User.query.filter_by(session_id=session['user_id']).first()
     if not user or (not user.is_premium and user.images_used >= 2):
         return "Límite gratuito alcanzado. Suscríbete para más."
@@ -116,20 +116,10 @@ def imagen():
         image_url = response["data"][0]["url"]
         user.images_used += 1
         db.session.commit()
-        return render_template('chat.html', image_url=image_url)
+
+        return render_template('chat.html', image_url=image_url)  # Pasar la URL a la plantilla
     except Exception as e:
         return f"Error generando imagen: {str(e)}", 500
-
-@app.route('/upload', methods=['POST'])
-def upload():
-    file = request.files['file']
-    if file:
-        upload_dir = os.path.join("uploads")
-        os.makedirs(upload_dir, exist_ok=True)
-        filepath = os.path.join(upload_dir, file.filename)
-        file.save(filepath)
-        return f"Archivo {file.filename} subido correctamente."
-    return "No se seleccionó ningún archivo."
 
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
@@ -153,19 +143,6 @@ def activate_premium():
     if user:
         user.is_premium = True
         db.session.commit()
-    return redirect(url_for('home'))
-
-@app.route('/login')
-def login():
-    session['user_id'] = str(uuid.uuid4())
-    if not User.query.filter_by(session_id=session['user_id']).first():
-        db.session.add(User(session_id=session['user_id']))
-        db.session.commit()
-    return redirect(url_for('home'))
-
-@app.route('/logout')
-def logout():
-    session.clear()
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
