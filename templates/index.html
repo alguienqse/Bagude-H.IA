@@ -199,6 +199,28 @@
     </div>
     <div class="main">
       <div class="container">
+
+        {% if user %}
+          <div style="text-align:right; font-size:14px; margin-bottom:10px;">
+            <span>
+              {% if user.is_premium %}
+                🟢 <strong>Usuario Premium</strong>
+              {% else %}
+                🔵 <strong>Usuario Gratuito</strong>
+              {% endif %}
+            </span>
+            <form action="/logout" method="post" style="display:inline;">
+              <button type="submit" style="margin-left:10px; font-size:14px; padding:6px 12px;">🚪 Cerrar sesión</button>
+            </form>
+          </div>
+        {% else %}
+          <div style="text-align:right; margin-bottom:10px;">
+            <a href="/login" style="text-decoration:none;">
+              <button style="font-size:14px; padding:6px 12px;">🔐 Iniciar sesión</button>
+            </a>
+          </div>
+        {% endif %}
+
         <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
 
         <form action="/ask" method="post">
