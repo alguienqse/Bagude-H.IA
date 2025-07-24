@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# Cliente OpenAI clásico
+# OpenAI (versión clásica)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Stripe
@@ -52,28 +52,35 @@ def home():
 
 @app.route('/ask', methods=['POST'])
 def ask():
+    if 'user_id' not in session:
+        session['user_id'] = str(uuid.uuid4())
+
     user = User.query.filter_by(session_id=session['user_id']).first()
     if not user:
-        return "Usuario no encontrado", 400
+        user = User(session_id=session['user_id'])
+        db.session.add(user)
+        db.session.commit()
+
     if not user.is_premium and user.questions_used >= 10:
         return "Límite gratuito alcanzado. Suscríbete para más."
 
     question = request.form['question']
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "Eres H.IA, un asistente de estudios útil."},
                 {"role": "user", "content": question}
             ]
         )
-        answer = response.choices[0].message['content']
-        db.session.add(ChatHistory(question=question, answer=answer))
-        user.questions_used += 1
-        db.session.commit()
-        return redirect(url_for('home'))
+        answer = response.choices[0].message["content"]
     except Exception as e:
-        return f"Error al consultar OpenAI: {str(e)}", 500
+        return f"Error al consultar OpenAI: {e}", 500
+
+    db.session.add(ChatHistory(question=question, answer=answer))
+    user.questions_used += 1
+    db.session.commit()
+    return redirect(url_for('home'))
 
 @app.route('/reset')
 def reset():
@@ -108,7 +115,7 @@ def imagen():
             n=1,
             size="1024x1024"
         )
-        image_url = response['data'][0]['url']
+        image_url = response["data"][0]["url"]
         user.images_used += 1
         db.session.commit()
         return redirect(image_url)
@@ -150,10 +157,18 @@ def activate_premium():
         db.session.commit()
     return redirect(url_for('home'))
 
+@app.route('/login')
+def login():
+    session['user_id'] = str(uuid.uuid4())
+    if not User.query.filter_by(session_id=session['user_id']).first():
+        db.session.add(User(session_id=session['user_id']))
+        db.session.commit()
+    return redirect(url_for('home'))
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
