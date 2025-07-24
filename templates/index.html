@@ -70,6 +70,15 @@
       margin-bottom: 20px;
     }
 
+    .sidebar .conversation {
+      margin-bottom: 10px;
+      padding: 5px;
+      background-color: #333;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
     .main {
       flex-grow: 1;
       padding: 20px;
@@ -115,6 +124,7 @@
       margin: 0 10px;
       position: relative;
       background-color: var(--bubble-user);
+      color: var(--fg); /* Aseguramos que el texto sea blanco y legible */
       white-space: pre-wrap;
       overflow-wrap: break-word;
       word-break: break-word;
@@ -122,6 +132,7 @@
 
     .ai .bubble {
       background-color: var(--bubble-ai);
+      color: var(--fg); /* Aseguramos que el texto sea blanco y legible */
     }
 
     .avatar {
@@ -229,6 +240,7 @@
         opacity: 1;
       }
     }
+
   </style>
 </head>
 <body>
@@ -236,18 +248,36 @@
     <div class="sidebar">
       <h2>Historial</h2>
       <input type="text" id="search" placeholder="Buscar en historial...">
+      <div id="conversations">
+        {% for conversation in user_conversations %}
+          <div class="conversation" onclick="loadConversation('{{ conversation.id }}')">
+            Conversación {{ conversation.id }}
+          </div>
+        {% endfor %}
+      </div>
       <div>
         <button>🎧 Generar Audio</button>
         <button>🖼 Generar Imagen</button>
         <button>📎 Subir Archivo</button>
       </div>
+      <!-- Botón de Suscripción -->
+      <form action="/subscribe" method="post">
+        <input type="email" name="email" placeholder="Tu correo electrónico" required>
+        <button type="submit">💳 Suscribirme</button>
+      </form>
+      <!-- Botón de Cancelar Suscripción (solo para usuarios premium) -->
+      {% if user.is_premium %}
+        <form action="/cancel_subscription" method="post">
+          <button type="submit">❌ Cancelar suscripción</button>
+        </form>
+      {% endif %}
     </div>
 
     <div class="main">
       <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
 
       <div class="chat" id="chat-box">
-        {% for item in chat_history %}
+        {% for item in current_conversation %}
           <div class="message user">
             <img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" alt="User" class="avatar">
             <div class="bubble">{{ item.question }}</div>
@@ -304,6 +334,12 @@
     setTimeout(() => {
       toggleTypingIndicator(false);
     }, 3000); // Después de 3 segundos, dejar de mostrar el "escribiendo"
+
+    // Función para cargar una conversación al hacer click
+    function loadConversation(conversationId) {
+      // Aquí debería ir el código para cargar la conversación correspondiente
+      console.log("Cargando conversación", conversationId);
+    }
   </script>
 </body>
 </html>
