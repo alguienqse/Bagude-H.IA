@@ -1,28 +1,28 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
-from openai import OpenAI
 from gtts import gTTS
+import openai  # Versión 1.3.9
 import os
 import uuid
 import stripe
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env
 load_dotenv()
 
+# Flask setup
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
 
-# OpenAI (cliente compatible con 1.3.9)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# OpenAI setup
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Stripe
+# Stripe setup
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
 
-# Modelos de la base de datos
+# Base de datos
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text, nullable=False)
@@ -58,7 +58,7 @@ def ask():
         return "Límite gratuito alcanzado. Suscríbete para preguntas ilimitadas."
 
     question = request.form['question']
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="gpt-4o",
         messages=[
             {"role": "system", "content": "Eres H.IA, un asistente de estudios con información actual y útil."},
@@ -99,14 +99,12 @@ def imagen():
 
     prompt = request.form['prompt']
     try:
-        response = client.images.generate(
-            model="dall-e-3",
+        response = openai.Image.create(
             prompt=prompt,
-            size="1024x1024",
-            quality="standard",
-            n=1
+            n=1,
+            size="1024x1024"
         )
-        image_url = response.data[0].url
+        image_url = response['data'][0]['url']
         user.images_used += 1
         db.session.commit()
         return redirect(image_url)
