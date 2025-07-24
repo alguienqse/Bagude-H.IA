@@ -29,6 +29,7 @@ class ChatHistory(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)  # Campo para el correo electrónico
     is_premium = db.Column(db.Boolean, default=False)
     questions_used = db.Column(db.Integer, default=0)
     images_used = db.Column(db.Integer, default=0)
@@ -121,6 +122,17 @@ def generate_image():
     except Exception as e:
         return f"Error generando imagen: {str(e)}", 500
 
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+    if file:
+        upload_dir = os.path.join("uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        filepath = os.path.join(upload_dir, file.filename)
+        file.save(filepath)
+        return f"Archivo {file.filename} subido correctamente."
+    return "No se seleccionó ningún archivo."
+
 @app.route('/subscribe', methods=['POST'])
 def subscribe():
     email = request.form['email']
@@ -143,6 +155,36 @@ def activate_premium():
     if user:
         user.is_premium = True
         db.session.commit()
+    return redirect(url_for('home'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Si el formulario ha sido enviado con un correo
+    if request.method == 'POST':
+        email = request.form['email']
+        session['email'] = email  # Guardar el correo en la sesión
+
+        # Verificar si ya existe el usuario
+        user = User.query.filter_by(session_id=session['user_id']).first()
+        if not user:
+            # Si el usuario no existe, lo creamos con el correo
+            user = User(session_id=session['user_id'], email=email)
+            db.session.add(user)
+            db.session.commit()
+
+        # Inicializamos las 10 preguntas y 2 imágenes gratuitas
+        if not user.questions_used and not user.images_used:
+            user.questions_used = 0  # Preguntas disponibles
+            user.images_used = 0  # Imágenes disponibles
+            db.session.commit()
+
+        return redirect(url_for('home'))
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
     return redirect(url_for('home'))
 
 if __name__ == '__main__':
