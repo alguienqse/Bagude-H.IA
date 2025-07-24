@@ -337,7 +337,7 @@
 
       <div class="input-form">
         <form action="/ask" method="POST" style="width: 100%;">
-          <input type="text" name="question" placeholder="Haz tu pregunta..." required>
+          <input type="text" name="question" placeholder="Escribe tu pregunta..." required id="user-input" oninput="showTypingText()">
           <button type="submit">Enviar</button>
         </form>
       </div>
@@ -384,6 +384,13 @@
     function loadConversation(conversationId) {
       // Aquí deberías cargar la conversación correspondiente
       console.log("Cargando conversación", conversationId);
+    }
+
+    // Mostrar el texto mientras se escribe
+    function showTypingText() {
+      const input = document.getElementById("user-input");
+      const typingText = document.getElementById("typing-text");
+      typingText.textContent = input.value;
     }
   </script>
 </body>
