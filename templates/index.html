@@ -38,27 +38,44 @@
       color: var(--fg);
       margin: 0;
       padding: 0;
+      display: flex;
+      height: 100vh;
       transition: background 0.3s, color 0.3s;
     }
 
     .wrapper {
       display: flex;
-      height: 100vh;
-      overflow: hidden;
-      justify-content: center;
-      align-items: center;
+      flex-grow: 1;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: var(--container);
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .sidebar input {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: none;
+      margin-bottom: 20px;
     }
 
     .main {
-      max-width: 800px;
-      width: 100%;
+      flex-grow: 1;
       padding: 20px;
       background: var(--container);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      overflow-y: auto;
+      position: relative;
     }
 
     h1 {
@@ -138,6 +155,7 @@
       width: 100%;
       display: flex;
       gap: 10px;
+      margin-top: 20px;
     }
 
     .input-form input {
@@ -215,6 +233,16 @@
 </head>
 <body>
   <div class="wrapper">
+    <div class="sidebar">
+      <h2>Historial</h2>
+      <input type="text" id="search" placeholder="Buscar en historial...">
+      <div>
+        <button>🎧 Generar Audio</button>
+        <button>🖼 Generar Imagen</button>
+        <button>📎 Subir Archivo</button>
+      </div>
+    </div>
+
     <div class="main">
       <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
 
@@ -257,6 +285,9 @@
   </div>
 
   <script>
+    const chatBox = document.getElementById('chat-box');
+    if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
     // Función de "escribiendo..." mientras se genera la respuesta
     let isTyping = false;
     function toggleTypingIndicator(visible) {
