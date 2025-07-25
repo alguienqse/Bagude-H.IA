@@ -271,12 +271,19 @@
           </div>
         {% endfor %}
       </div>
-
-      <!-- Mostrar el correo del usuario y los límites -->
       <div>
-        <p><strong>Correo:</strong> {{ user.email }}</p>
-        <p><strong>Preguntas restantes:</strong> {{ 10 - user.questions_used }} de 10</p>
-        <p><strong>Imágenes restantes:</strong> {{ 2 - user.images_used }} de 2</p>
+        <form action="/generate_audio" method="POST">
+          <input type="text" name="text" placeholder="Texto para convertir en audio..." required>
+          <button type="submit">🎧 Generar Audio</button>
+        </form>
+        <form action="/generate_image" method="POST">
+          <input type="text" name="prompt" placeholder="Describe la imagen..." required>
+          <button type="submit">🖼 Generar Imagen</button>
+        </form>
+        <form action="/upload_file" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" required>
+          <button type="submit">📎 Subir Archivo</button>
+        </form>
       </div>
 
       <!-- Botón de Suscripción -->
@@ -290,30 +297,47 @@
           <button type="submit">❌ Cancelar suscripción</button>
         </form>
       {% endif %}
+
+      <!-- Botón de modo oscuro / claro -->
+      <button class="theme-toggle-btn" id="theme-toggle">🌙 Modo oscuro</button>
+      <div>
+        {% if user.is_authenticated %}
+          <form action="/logout" method="post">
+            <button type="submit">🚪 Cerrar sesión</button>
+          </form>
+        {% else %}
+          <a href="/login"><button>🔐 Iniciar sesión</button></a>
+        {% endif %}
+      </div>
     </div>
 
     <div class="main">
       <h1>🤖 H.IA - Tu Asistente de Estudios</h1>
 
       <div class="chat" id="chat-box">
-        {% for item in chat_history %}
+        {% for item in current_conversation %}
           <div class="message user">
             <img src="https://cdn-icons-png.flaticon.com/512/1946/1946429.png" alt="User" class="avatar">
-            <div class="bubble">{{ item.question }}</div>  <!-- Mostrar la pregunta -->
+            <div class="bubble">{{ item.question }}</div>
           </div>
           <div class="message ai">
             <img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" alt="H.IA" class="avatar">
             <div class="bubble markdown">
               <button class="copy-btn">Copiar</button>
-              <div class="markdown-content">{{ item.answer }}</div>  <!-- Mostrar la respuesta de la IA -->
+              <div class="markdown-content">{{ item.answer }}</div>
             </div>
+            {% if item.image %}
+              <div class="bubble">
+                <img src="{{ item.image }}" alt="Imagen generada" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
+              </div>
+            {% endif %}
           </div>
         {% endfor %}
       </div>
 
       <div class="input-form">
         <form action="/ask" method="POST" style="width: 100%;">
-          <input type="text" name="question" placeholder="Escribe tu pregunta..." required id="user-input" oninput="showTypingText()">
+          <input type="text" name="question" placeholder="Haz tu pregunta..." required>
           <button type="submit">Enviar</button>
         </form>
       </div>
@@ -360,13 +384,6 @@
     function loadConversation(conversationId) {
       // Aquí deberías cargar la conversación correspondiente
       console.log("Cargando conversación", conversationId);
-    }
-
-    // Mostrar el texto mientras se escribe
-    function showTypingText() {
-      const input = document.getElementById("user-input");
-      const typingText = document.getElementById("typing-text");
-      typingText.textContent = input.value;
     }
   </script>
 </body>

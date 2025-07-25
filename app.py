@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate  # Asegúrate de importar Flask-Migrate
 from gtts import gTTS
 import os
 import uuid
@@ -13,14 +14,16 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)  # Configuración de Flask-Migrate
 
-# OpenAI (versión clásica)
+# Configuración de OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Stripe
+# Configuración de Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID")
 
+# Modelos de base de datos
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.Text, nullable=False)
