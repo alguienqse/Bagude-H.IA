@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file, session
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate  # Asegúrate de importar Flask-Migrate
+from flask_migrate import Migrate  # Importar Flask-Migrate
 from gtts import gTTS
 import os
 import uuid
@@ -10,9 +10,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Inicialización de Flask y configuración
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chatbot.db'  # Conexión a la base de datos
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Desactivar advertencia de modificaciones
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)  # Configuración de Flask-Migrate
 
@@ -32,11 +34,12 @@ class ChatHistory(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(100), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)  # Campo para el correo electrónico
+    email = db.Column(db.String(120), unique=True, nullable=True)  # Campo para el correo electrónico
     is_premium = db.Column(db.Boolean, default=False)
     questions_used = db.Column(db.Integer, default=0)
     images_used = db.Column(db.Integer, default=0)
 
+# Crear las tablas si no existen (solo para el inicio)
 with app.app_context():
     db.create_all()
 
@@ -44,6 +47,7 @@ with app.app_context():
 def assign_session():
     if 'user_id' not in session:
         session['user_id'] = str(uuid.uuid4())
+        # Verificar si el usuario ya existe en la base de datos
         if not User.query.filter_by(session_id=session['user_id']).first():
             db.session.add(User(session_id=session['user_id']))
             db.session.commit()
