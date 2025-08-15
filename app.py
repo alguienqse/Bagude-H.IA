@@ -35,10 +35,11 @@ class User(db.Model):
     is_premium = db.Column(db.Boolean, default=False)
     questions_used = db.Column(db.Integer, default=0)
     images_used = db.Column(db.Integer, default=0)
+    chat_histories = db.relationship('ChatHistory', backref='user', lazy=True)
 
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
 
